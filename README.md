@@ -11,6 +11,8 @@ DVR Tuner Server for Japanese TV which designed for the "Air" (in development co
 [![Backers on Open Collective](https://opencollective.com/Mirakurun/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/Mirakurun/sponsors/badge.svg)](#sponsors)
 
+> [!NOTE] こちらは開発ブランチです。正常な動作は保証しておりません。
+> 機能追加するときのテストをしています。
 ## Docker
 
 [![dockeri.co](https://dockeri.co/image/chinachu/mirakurun)][docker-url]

@@ -72,7 +72,7 @@ export default class Tuner {
         return this._initTS({
             ...userReq,
             streamSetting: {
-                channel,
+                channel: [channel],
                 networkId,
                 parseEIT: true
             }
@@ -127,7 +127,7 @@ export default class Tuner {
             priority: -1,
             disableDecoder: true,
             streamSetting: {
-                channel,
+                channel: [channel],
                 networkId,
                 parseEIT: true
             }
@@ -158,7 +158,7 @@ export default class Tuner {
             priority: -1,
             disableDecoder: true,
             streamSetting: {
-                channel,
+                channel: [channel],
                 parseNIT: true,
                 parseSDT: true
             }
@@ -284,124 +284,125 @@ export default class Tuner {
                 setting.parseEIT = false;
             }
 
-            const devices = this._getDevicesByType(setting.channel.type);
+            for (const ch of setting.channel) {
+                const devices = this._getDevicesByType(ch.type);
+                const length = devices.length;
+                let tryCount = 25;
+                const wait_tuner_ms = 1000; // ms default(1s)
 
-            let tryCount = 25;
-            const wait_tuner_ms = 1000; // ms default(1s)
-            const length = devices.length;
+                function find() {
 
-            function find() {
+                    let device: TunerDevice = null;
 
-                let device: TunerDevice = null;
-
-                // 1. join to existing
-                for (let i = 0; i < length; i++) {
-                    if (devices[i].isAvailable === true && devices[i].channel === setting.channel) {
-                        device = devices[i];
-                        break;
-                    }
-                }
-
-                // x. use remote data
-                if (device === null && !dest) {
-                    const remoteDevice = devices.find(device => device.isRemote);
-                    if (remoteDevice) {
-                        if (setting.networkId !== undefined && setting.parseEIT === true) {
-                            remoteDevice.getRemotePrograms({ networkId: setting.networkId })
-                                .then(async programs => {
-                                    await common.sleep(1000);
-                                    _.program.findByNetworkIdAndReplace(setting.networkId, programs);
-                                    for (const service of _.service.findByNetworkId(setting.networkId)) {
-                                        service.epgReady = true;
-                                    }
-                                    await common.sleep(1000);
-                                })
-                                .then(() => resolve(null))
-                                .catch(err => reject(err));
-
-                            return;
-                        }
-                    }
-                }
-
-                // 2. start as new
-                if (device === null) {
+                    // 1. join to existing
                     for (let i = 0; i < length; i++) {
-                        if (devices[i].isFree === true) {
+                        if (devices[i].isAvailable === true && devices[i].channel === ch) {
                             device = devices[i];
                             break;
                         }
                     }
-                }
 
-                // 3. replace existing
-                if (device === null) {
-                    for (let i = 0; i < length; i++) {
-                        if (devices[i].isAvailable === true && devices[i].users.length === 0) {
-                            device = devices[i];
-                            break;
+                    // x. use remote data
+                    if (device === null && !dest) {
+                        const remoteDevice = devices.find(device => device.isRemote);
+                        if (remoteDevice) {
+                            if (setting.networkId !== undefined && setting.parseEIT === true) {
+                                remoteDevice.getRemotePrograms({ networkId: setting.networkId })
+                                    .then(async programs => {
+                                        await common.sleep(1000);
+                                        _.program.findByNetworkIdAndReplace(setting.networkId, programs);
+                                        for (const service of _.service.findByNetworkId(setting.networkId)) {
+                                            service.epgReady = true;
+                                        }
+                                        await common.sleep(1000);
+                                    })
+                                    .then(() => resolve(null))
+                                    .catch(err => reject(err));
+
+                                return;
+                            }
                         }
                     }
-                }
 
-                // 4. takeover existing
-                if (device === null) {
-                    devices.sort((t1, t2) => {
-                        return t1.getPriority() - t2.getPriority();
-                    });
-
-                    for (let i = 0; i < length; i++) {
-                        if (devices[i].isUsing === true && devices[i].getPriority() < user.priority) {
-                            device = devices[i];
-                            break;
+                    // 2. start as new
+                    if (device === null) {
+                        for (let i = 0; i < length; i++) {
+                            if (devices[i].isFree === true) {
+                                device = devices[i];
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (device === null) {
-                    --tryCount;
-                    if (tryCount > 0) {
-                        setTimeout(find, wait_tuner_ms);
-                    } else {
-                        reject(new Error("no available tuners"));
+                    // 3. replace existing
+                    if (device === null) {
+                        for (let i = 0; i < length; i++) {
+                            if (devices[i].isAvailable === true && devices[i].users.length === 0) {
+                                device = devices[i];
+                                break;
+                            }
+                        }
                     }
-                } else {
-                    let output: Writable;
-                    if (user.disableDecoder === true || device.decoder === null) {
-                        output = dest;
-                    } else {
-                        output = new TSDecoder({
-                            output: dest,
-                            command: device.decoder
+
+                    // 4. takeover existing
+                    if (device === null) {
+                        devices.sort((t1, t2) => {
+                            return t1.getPriority() - t2.getPriority();
                         });
+
+                        for (let i = 0; i < length; i++) {
+                            if (devices[i].isUsing === true && devices[i].getPriority() < user.priority) {
+                                device = devices[i];
+                                break;
+                            }
+                        }
                     }
 
-                    const tsFilter = new TSFilter({
-                        output,
-                        networkId: setting.networkId,
-                        serviceId: setting.serviceId,
-                        eventId: setting.eventId,
-                        parseNIT: setting.parseNIT,
-                        parseSDT: setting.parseSDT,
-                        parseEIT: setting.parseEIT,
-                        tsmfRelTs: setting.channel.tsmfRelTs
-                    });
+                    if (device === null) {
+                        --tryCount;
+                        if (tryCount > 0) {
+                            setTimeout(find, wait_tuner_ms);
+                        } else {
+                            reject(new Error("no available tuners"));
+                        }
+                    } else {
+                        let output: Writable;
+                        if (user.disableDecoder === true || device.decoder === null) {
+                            output = dest;
+                        } else {
+                            output = new TSDecoder({
+                                output: dest,
+                                command: device.decoder
+                            });
+                        }
 
-                    Object.defineProperty(user, "streamInfo", {
-                        get: () => tsFilter.streamInfo
-                    });
-
-                    device.startStream(user, tsFilter, setting.channel)
-                        .then(() => {
-                            resolve(tsFilter);
-                        })
-                        .catch((err) => {
-                            tsFilter.end();
-                            reject(err);
+                        const tsFilter = new TSFilter({
+                            output,
+                            networkId: setting.networkId,
+                            serviceId: setting.serviceId,
+                            eventId: setting.eventId,
+                            parseNIT: setting.parseNIT,
+                            parseSDT: setting.parseSDT,
+                            parseEIT: setting.parseEIT,
+                            tsmfRelTs: ch.tsmfRelTs
                         });
+
+                        Object.defineProperty(user, "streamInfo", {
+                            get: () => tsFilter.streamInfo
+                        });
+
+                        device.startStream(user, tsFilter, ch)
+                            .then(() => {
+                                resolve(tsFilter);
+                            })
+                            .catch((err) => {
+                                tsFilter.end();
+                                reject(err);
+                            });
+                    }
                 }
+                find();
             }
-            find();
         });
     }
 

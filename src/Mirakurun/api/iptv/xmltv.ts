@@ -263,7 +263,7 @@ export const get: Operation = async (req, res) => {
         x += `<channel id="${service.id}">\n`;
         x += `<display-name>${escapeXMLSpecialChars(service.name)}</display-name>\n`;
         x += `<display-name>${mainNum}.${subNum}</display-name>\n`;
-        if (await Service.isLogoDataExists(service.networkId, service.logoId)) {
+        if (await Service.isLogoDataExists(service.networkId, service.serviceId, service.logoId)) {
             x += `<icon src="${apiRoot}/services/${service.id}/logo" />`;
         }
         x += `</channel>\n`;

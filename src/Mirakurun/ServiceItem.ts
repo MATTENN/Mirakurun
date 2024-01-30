@@ -30,7 +30,7 @@ export default class ServiceItem {
     private _id: number;
 
     constructor(
-        private _channel: ChannelItem,
+        private _channel: ChannelItem[],
         private _networkId: number,
         private _serviceId: number,
         private _name?: string,
@@ -139,7 +139,7 @@ export default class ServiceItem {
         }
     }
 
-    get channel(): ChannelItem {
+    get channel(): ChannelItem[] {
         return this._channel;
     }
 
@@ -155,10 +155,7 @@ export default class ServiceItem {
             remoteControlKeyId: this._remoteControlKeyId,
             epgReady: this._epgReady,
             epgUpdatedAt: this._epgUpdatedAt,
-            channel: {
-                type: this._channel.type,
-                channel: this._channel.channel
-            }
+            channel: this._channel
         };
 
         return ret;
@@ -172,7 +169,7 @@ export default class ServiceItem {
 
         let order: string;
 
-        switch (this._channel.type) {
+        switch (this._channel[0].type) {
             case "GR":
                 order = "1";
                 break;

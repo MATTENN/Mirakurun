@@ -154,8 +154,8 @@ export default class TSFilter extends EventEmitter {
 
         const enabletsmf = options.tsmfRelTs || 0;
         if (enabletsmf !== 0) {
-                this._tsmfEnableTsmfSplit = true;
-                this._tsmfTsNumber = options.tsmfRelTs;
+            this._tsmfEnableTsmfSplit = true;
+            this._tsmfTsNumber = options.tsmfRelTs;
         }
 
         this._targetNetworkId = options.networkId || null;
@@ -707,7 +707,8 @@ export default class TSFilter extends EventEmitter {
             log.debug("TSFilter#_onCDT: received logo data (networkId=%d, logoId=%d)", data.original_network_id, dataModule.logo_id);
 
             const logoData = TsLogo.decode(dataModule.data_byte);
-            Service.saveLogoData(data.original_network_id, dataModule.logo_id, logoData);
+            const service = _.service.get(data.original_network_id);
+            Service.saveLogoData(data.original_network_id, service.serviceId, dataModule.logo_id, logoData);
         }
     }
 
@@ -759,7 +760,7 @@ export default class TSFilter extends EventEmitter {
                     log.debug("TSFilter#_onDSMCC: received logo data (networkId=%d, logoId=%d)", service.networkId, service.logoId);
 
                     const logoData = new TsLogo(logo.data_byte).decode(); // png
-                    Service.saveLogoData(service.networkId, service.logoId, logoData);
+                    Service.saveLogoData(service.networkId, service.serviceId, service.logoId, logoData);
                     break;
                 }
             }
@@ -863,7 +864,7 @@ export default class TSFilter extends EventEmitter {
                 }
 
                 // check logoDataInterval
-                if (now - await Service.getLogoDataMTime(this._targetNetworkId, logoId) > logoDataInterval) {
+                if (now - await Service.getLogoDataMTime(this._targetNetworkId, this._provideServiceId, logoId) > logoDataInterval) {
                     if (this._closed) {
                         return; // break all loops
                     }
@@ -983,7 +984,7 @@ export default class TSFilter extends EventEmitter {
         }
 
         // update ignore field (segment)
-        for (let i = lastSegmentNumber + 1; i < 0x20 ; i++) {
+        for (let i = lastSegmentNumber + 1; i < 0x20; i++) {
             targetFlag.ignore[i] = 0xFF;
         }
 
