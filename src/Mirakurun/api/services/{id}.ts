@@ -39,7 +39,7 @@ export const get: Operation = async (req, res) => {
     }
 
     const service: apid.Service = {
-        ...<any> serviceItem.export(),
+        ...serviceItem.export(),
         hasLogoData: await Service.isLogoDataExists(serviceItem.networkId, serviceItem.serviceId, serviceItem.logoId)
     };
     res.json(service);

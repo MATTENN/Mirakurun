@@ -30,7 +30,7 @@ export const get: Operation = async (req, res) => {
 
     for (const serviceItem of serviceItems.filter(sift(req.query))) {
         services.push({
-            ...<any> serviceItem.export(),
+            ...serviceItem.export(),
             hasLogoData: await Service.isLogoDataExists(serviceItem.networkId, serviceItem.serviceId, serviceItem.logoId)
         });
     }
@@ -68,14 +68,14 @@ get.apiDoc = {
         },
         {
             in: "query",
-            name: "channel.type",
+            name: "channel[0].type",
             type: "string",
             enum: Object.keys(ChannelTypes),
             required: false
         },
         {
             in: "query",
-            name: "channel.channel",
+            name: "channel[0].channel",
             type: "string",
             required: false
         }

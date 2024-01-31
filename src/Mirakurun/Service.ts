@@ -33,16 +33,22 @@ export default class Service {
     // * ロゴデータのパスを取得
     static getLogoDataPath(networkId: number, serviceId: number, logoId: number) {
 
+        // BS/CS/CATVはロゴIDを使わずにサービスIDで対応する CATVのネットワークIDの範囲が不明なため60000以上で対応
+        if (networkId === 4 || networkId === 6 || networkId === 7 || networkId > 60000) {
+            return join(LOGO_DATA_DIR_PATH, `${networkId}_${serviceId}.png`);
+        }
+
         if (typeof logoId !== "number" || logoId < 0) {
             throw new Error("Invalid `logoId`");
         }
 
-        return join(LOGO_DATA_DIR_PATH, `${networkId}_${serviceId}_${logoId}.png`);
+        // 地上波はロゴIDで保存する
+        return join(LOGO_DATA_DIR_PATH, `${networkId}_${logoId}.png`);
     }
 
     static async getLogoDataMTime(networkId: number, serviceId: number, logoId: number): Promise<number> {
 
-        if (typeof logoId !== "number" || logoId < 0) {
+        if (typeof logoId !== "number" || logoId < -1) {
             return 0;
         }
 
@@ -55,7 +61,7 @@ export default class Service {
 
     static async isLogoDataExists(networkId: number, serviceId: number, logoId: number): Promise<boolean> {
 
-        if (typeof logoId !== "number" || logoId < 0) {
+        if (typeof logoId !== "number" || logoId < -1) {
             return false;
         }
 
@@ -68,7 +74,7 @@ export default class Service {
 
     static async loadLogoData(networkId: number, serviceId: number, logoId: number): Promise<Buffer> {
 
-        if (typeof logoId !== "number" || logoId < 0) {
+        if (typeof logoId !== "number" || logoId < -1) {
             return null;
         }
 

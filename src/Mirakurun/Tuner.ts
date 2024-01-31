@@ -366,6 +366,7 @@ export default class Tuner {
                             reject(new Error("no available tuners"));
                         }
                     } else {
+                        // log.debug("チューナーを開く準備を行っています");
                         let output: Writable;
                         if (user.disableDecoder === true || device.decoder === null) {
                             output = dest;

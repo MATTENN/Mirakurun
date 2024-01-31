@@ -37,7 +37,7 @@ export const get: Operation = async (req, res) => {
         return;
     }
 
-    if (typeof service.logoId !== "number" || service.logoId < 0) {
+    if (typeof service.logoId !== "number" || service.logoId < -1) {
         res.writeHead(503, "Logo Data Unavailable");
         res.end();
         return;
