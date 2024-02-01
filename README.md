@@ -11,8 +11,14 @@ DVR Tuner Server for Japanese TV which designed for the "Air" (in development co
 [![Backers on Open Collective](https://opencollective.com/Mirakurun/backers/badge.svg)](#backers)
 [![Sponsors on Open Collective](https://opencollective.com/Mirakurun/sponsors/badge.svg)](#sponsors)
 
-> [!NOTE] こちらは開発ブランチです。正常な動作は保証しておりません。
+> [!NOTE]
+> こちらは開発ブランチです。正常な動作は保証しておりません。
 > 機能追加するときのテストをしています。
+> BonDriverごとに物理チャンネル番号等がずれてしまっている場合でも、
+> 効率よく選局ができるようになりました。
+> EPGStation devブランチとBonDriver_mirakcのService_Split=1で動作することを確認済みです。
+> ※APIに変更が加わっているため、各種本家のツールでは動作しません。
+>
 ## Docker
 
 [![dockeri.co](https://dockeri.co/image/chinachu/mirakurun)][docker-url]
