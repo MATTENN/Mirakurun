@@ -284,126 +284,158 @@ export default class Tuner {
                 setting.parseEIT = false;
             }
 
+            /**
+             * チューナーグループとチャンネルの組み合わせが渡される
+             * 想定としては次のように同一チャンネルが映るチューナー情報が渡される
+             * {type: GR, channel: 0}{type: NW1, channel: 17}
+             * ループを回し、GR側が利用中や利用不可の時にNW1側のチューナーを利用する
+             */
+            const devices = []; // チューナーデバイスを格納
+            const channels = []; // チャンネル情報を格納
+
             for (const ch of setting.channel) {
-                const devices = this._getDevicesByType(ch.type);
-                const length = devices.length;
-                let tryCount = 25;
-                const wait_tuner_ms = 1000; // ms default(1s)
+                const device = this._getDevicesByType(ch.type);
+                // チューナーと同じ数チャンネル情報を複製
+                for (let index = 0; index < device.length; index++) {
+                    devices.push(device[index]);
+                    channels.push(ch);
+                }
+            }
 
-                function find() {
+            const length = devices.length;
+            let tryCount: number = 25;
+            const waitTunerMs: number = 1000; // ms default(1s)
+            let isSuccessStream: boolean = true; // 関数findが正常に終了したか
 
-                    let device: TunerDevice = null;
+            function find() {
 
-                    // 1. join to existing
+                let device: TunerDevice = null;
+                let channel: ChannelItem = null;
+
+                // 1. join to existing
+                for (let i = 0; i < length; i++) {
+                    if (devices[i].isAvailable === true && devices[i].channel === channels[i]) {
+                        device = devices[i];
+                        channel = channels[i];
+                        break;
+                    }
+                }
+
+                // x. use remote data
+                if (device === null && !dest) {
+                    const remoteDevice = devices.find(device => device.isRemote);
+                    if (remoteDevice) {
+                        if (setting.networkId !== undefined && setting.parseEIT === true) {
+                            remoteDevice.getRemotePrograms({ networkId: setting.networkId })
+                                .then(async programs => {
+                                    await common.sleep(1000);
+                                    _.program.findByNetworkIdAndReplace(setting.networkId, programs);
+                                    for (const service of _.service.findByNetworkId(setting.networkId)) {
+                                        service.epgReady = true;
+                                    }
+                                    await common.sleep(1000);
+                                })
+                                .then(() => resolve(null))
+                                .catch(err => {
+                                    reject(err);
+                                    // isSuccessStream = false; // error
+                                });
+                            return;
+                        }
+                    }
+                }
+
+                // 2. start as new
+                if (device === null) {
                     for (let i = 0; i < length; i++) {
-                        if (devices[i].isAvailable === true && devices[i].channel === ch) {
+                        if (devices[i].isFree === true) {
                             device = devices[i];
+                            channel = channels[i];
                             break;
                         }
                     }
+                }
 
-                    // x. use remote data
-                    if (device === null && !dest) {
-                        const remoteDevice = devices.find(device => device.isRemote);
-                        if (remoteDevice) {
-                            if (setting.networkId !== undefined && setting.parseEIT === true) {
-                                remoteDevice.getRemotePrograms({ networkId: setting.networkId })
-                                    .then(async programs => {
-                                        await common.sleep(1000);
-                                        _.program.findByNetworkIdAndReplace(setting.networkId, programs);
-                                        for (const service of _.service.findByNetworkId(setting.networkId)) {
-                                            service.epgReady = true;
-                                        }
-                                        await common.sleep(1000);
-                                    })
-                                    .then(() => resolve(null))
-                                    .catch(err => reject(err));
-
-                                return;
-                            }
+                // 3. replace existing
+                if (device === null) {
+                    for (let i = 0; i < length; i++) {
+                        if (devices[i].isAvailable === true && devices[i].users.length === 0) {
+                            device = devices[i];
+                            channel = channels[i];
+                            break;
                         }
-                    }
-
-                    // 2. start as new
-                    if (device === null) {
-                        for (let i = 0; i < length; i++) {
-                            if (devices[i].isFree === true) {
-                                device = devices[i];
-                                break;
-                            }
-                        }
-                    }
-
-                    // 3. replace existing
-                    if (device === null) {
-                        for (let i = 0; i < length; i++) {
-                            if (devices[i].isAvailable === true && devices[i].users.length === 0) {
-                                device = devices[i];
-                                break;
-                            }
-                        }
-                    }
-
-                    // 4. takeover existing
-                    if (device === null) {
-                        devices.sort((t1, t2) => {
-                            return t1.getPriority() - t2.getPriority();
-                        });
-
-                        for (let i = 0; i < length; i++) {
-                            if (devices[i].isUsing === true && devices[i].getPriority() < user.priority) {
-                                device = devices[i];
-                                break;
-                            }
-                        }
-                    }
-
-                    if (device === null) {
-                        --tryCount;
-                        if (tryCount > 0) {
-                            setTimeout(find, wait_tuner_ms);
-                        } else {
-                            reject(new Error("no available tuners"));
-                        }
-                    } else {
-                        // log.debug("チューナーを開く準備を行っています");
-                        let output: Writable;
-                        if (user.disableDecoder === true || device.decoder === null) {
-                            output = dest;
-                        } else {
-                            output = new TSDecoder({
-                                output: dest,
-                                command: device.decoder
-                            });
-                        }
-
-                        const tsFilter = new TSFilter({
-                            output,
-                            networkId: setting.networkId,
-                            serviceId: setting.serviceId,
-                            eventId: setting.eventId,
-                            parseNIT: setting.parseNIT,
-                            parseSDT: setting.parseSDT,
-                            parseEIT: setting.parseEIT,
-                            tsmfRelTs: ch.tsmfRelTs
-                        });
-
-                        Object.defineProperty(user, "streamInfo", {
-                            get: () => tsFilter.streamInfo
-                        });
-
-                        device.startStream(user, tsFilter, ch)
-                            .then(() => {
-                                resolve(tsFilter);
-                            })
-                            .catch((err) => {
-                                tsFilter.end();
-                                reject(err);
-                            });
                     }
                 }
-                find();
+
+                // 4. takeover existing
+                if (device === null) {
+                    const tmp = [];
+                    devices.sort((t1, t2) => {
+                        tmp.push(t1.getPriority() - t2.getPriority());
+                        return t1.getPriority() - t2.getPriority();
+                    });
+
+                    channels.sort(() => {
+                        return tmp.shift();
+                    });
+
+                    for (let i = 0; i < length; i++) {
+                        if (devices[i].isUsing === true && devices[i].getPriority() < user.priority) {
+                            device = devices[i];
+                            channel = channels[i];
+                            break;
+                        }
+                    }
+                }
+
+                if (device === null) {
+                    --tryCount;
+                    if (tryCount > 0) {
+                        setTimeout(find, waitTunerMs);
+                    } else {
+                        reject(new Error("no available tuners"));
+                        // isSuccessStream = false; // error
+                    }
+                } else {
+                    log.debug("checking tuner type:%s channel: %s", channel.type, channel.channel);
+                    let output: Writable;
+                    if (user.disableDecoder === true || device.decoder === null) {
+                        output = dest;
+                    } else {
+                        output = new TSDecoder({
+                            output: dest,
+                            command: device.decoder
+                        });
+                    }
+
+                    const tsFilter = new TSFilter({
+                        output,
+                        networkId: setting.networkId,
+                        serviceId: setting.serviceId,
+                        eventId: setting.eventId,
+                        parseNIT: setting.parseNIT,
+                        parseSDT: setting.parseSDT,
+                        parseEIT: setting.parseEIT,
+                        tsmfRelTs: channel.tsmfRelTs
+                    });
+
+                    Object.defineProperty(user, "streamInfo", {
+                        get: () => tsFilter.streamInfo
+                    });
+
+                    device.startStream(user, tsFilter, channel)
+                        .then(() => {
+                            resolve(tsFilter);
+                        })
+                        .catch((err) => {
+                            tsFilter.end();
+                            reject(err);
+                            isSuccessStream = false; // error
+                        });
+                }
             }
+            find();
+            // if (isSuccessStream) { break; } // 問題がなければループから抜ける
         });
     }
 
