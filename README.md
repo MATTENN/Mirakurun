@@ -21,6 +21,7 @@ DVR Tuner Server for Japanese TV which designed for the "Air" (in development co
 > [EPGStation devブランチ](https://github.com/stuayu/EPGStation/tree/dev)と[BonDriver_mirakc](https://github.com/stuayu/BonDriver_mirakc)のService_Split=1で動作することを確認済みです。<br>
 > ※APIに変更が加わっているため、各種本家版のツールでは動作しません。<br>
 > KonomiTVは本家版で動作することを確認済みです。<br>
+> NodeJS v18/v20 LTS版でビルド、実行を確認しています。<br>
 
 ### インストール方法
   1. ダウンロード<br>
