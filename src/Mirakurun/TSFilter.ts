@@ -707,8 +707,11 @@ export default class TSFilter extends EventEmitter {
             log.debug("TSFilter#_onCDT: received logo data (networkId=%d, logoId=%d)", data.original_network_id, dataModule.logo_id);
 
             const logoData = TsLogo.decode(dataModule.data_byte);
-            const service = _.service.get(data.original_network_id);
-            Service.saveLogoData(data.original_network_id, service.serviceId, dataModule.logo_id, logoData);
+            for (const service of _.service.findByNetworkId(data.original_network_id)) {
+                Service.saveLogoData(data.original_network_id, service.serviceId, dataModule.logo_id, logoData);
+                // BS/CS/CATV以外は1回で終了
+                if (!([4, 6, 7].includes(data.original_network_id) || data.original_network_id > 60000)) { break; }
+            }
         }
     }
 
