@@ -183,19 +183,19 @@ export default class ChannelItem {
                 const item = _.service.get(service.networkId, service.serviceId);
                 // すでに同一サービスが存在している
                 if (item !== null) {
-                    // タイプとチャンネルが一致した場合スキップする
-                    for (let index = 0; index < item.channel.length; index++) {
-                        if (service.channel[0].type == item.channel[index].type &&
-                            service.channel[0].channel == item.channel[index].channel) {
-                            return;
-                        }
-                    }
                     item.name = service.name;
                     item.type = service.type;
                     if (service.logoId > -1) {
                         item.logoId = service.logoId;
                     }
                     item.remoteControlKeyId = service.remoteControlKeyId;
+                    // タイプとチャンネルが一致した場合スキップする
+                    for (let index = 0; index < item.channel.length; index++) {
+                        if (this._type === item.channel[index].type &&
+                            this._channel === item.channel[index].channel) {
+                            return;
+                        }
+                    }
                     item.channel.push(this);
                 } else if (add === true) {
                     _.service.add(
