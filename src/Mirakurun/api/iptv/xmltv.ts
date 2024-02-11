@@ -242,9 +242,9 @@ export const get: Operation = async (req, res) => {
     const services = [..._.service.items]; // shallow copy
     services.sort((a, b) => a.getOrder() - b.getOrder());
 
-    let x = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    x += `<!DOCTYPE tv SYSTEM "xmltv.dtd">\n`;
-    x += `<tv source-info-name="Mirakurun">\n`;
+    let x = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+    x += "<!DOCTYPE tv SYSTEM \"xmltv.dtd\">\n";
+    x += "<tv source-info-name=\"Mirakurun\">\n";
 
     const countMap = new Map<number, number>();
     for (const service of services) {
@@ -266,7 +266,7 @@ export const get: Operation = async (req, res) => {
         if (await Service.isLogoDataExists(service.networkId, service.serviceId, service.logoId)) {
             x += `<icon src="${apiRoot}/services/${service.id}/logo" />`;
         }
-        x += `</channel>\n`;
+        x += "</channel>\n";
     }
 
     for (const program of _.program.itemMap.values()) {
@@ -283,10 +283,10 @@ export const get: Operation = async (req, res) => {
                 x += `<category>${genreString}</category>\n`;
             }
         }
-        x += `</programme>\n`;
+        x += "</programme>\n";
     }
 
-    x += `</tv>`;
+    x += "</tv>";
 
     res.setHeader("Content-Type", "text/xml; charset=utf-8");
     res.status(200);

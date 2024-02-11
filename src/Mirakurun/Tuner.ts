@@ -375,9 +375,7 @@ export default class Tuner {
                         return t1.getPriority() - t2.getPriority();
                     });
 
-                    channels.sort(() => {
-                        return tmp.shift();
-                    });
+                    channels.sort(() => tmp.shift());
 
                     for (let i = 0; i < length; i++) {
                         if (devices[i].isUsing === true && devices[i].getPriority() < user.priority) {
@@ -399,14 +397,10 @@ export default class Tuner {
                 } else {
                     log.debug("checking tuner type:%s channel: %s", channel.type, channel.channel);
                     let output: Writable;
-                    if (user.disableDecoder === true || device.decoder === null) {
-                        output = dest;
-                    } else {
-                        output = new TSDecoder({
-                            output: dest,
-                            command: device.decoder
-                        });
-                    }
+                    output = user.disableDecoder === true || device.decoder === null ? dest : new TSDecoder({
+                        output: dest,
+                        command: device.decoder
+                    });
 
                     const tsFilter = new TSFilter({
                         output,

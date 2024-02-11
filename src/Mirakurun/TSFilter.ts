@@ -401,7 +401,9 @@ export default class TSFilter extends EventEmitter {
 
         if (parsingBuffers.length !== 0) {
             setImmediate(() => {
-                if (this._closed) { return; }
+                if (this._closed) {
+                    return;
+                }
                 this._parser.write(parsingBuffers);
                 parsingBuffers.length = 0;
             });
@@ -567,12 +569,12 @@ export default class TSFilter extends EventEmitter {
         if (data.transport_streams[0]) {
             for (const desc of data.transport_streams[0].transport_descriptors) {
                 switch (desc.descriptor_tag) {
-                    case 0xFA:
-                        _network.areaCode = desc.area_code;
-                        break;
-                    case 0xCD:
-                        _network.remoteControlKeyId = desc.remote_control_key_id;
-                        break;
+                case 0xFA:
+                    _network.areaCode = desc.area_code;
+                    break;
+                case 0xCD:
+                    _network.remoteControlKeyId = desc.remote_control_key_id;
+                    break;
                 }
             }
         }
@@ -710,7 +712,9 @@ export default class TSFilter extends EventEmitter {
             for (const service of _.service.findByNetworkId(data.original_network_id)) {
                 Service.saveLogoData(data.original_network_id, service.serviceId, dataModule.logo_id, logoData);
                 // BS/CS/CATV以外は1回で終了
-                if (!([4, 6, 7].includes(data.original_network_id) || data.original_network_id > 60000)) { break; }
+                if (!([4, 6, 7].includes(data.original_network_id) || data.original_network_id > 60000)) {
+                    break;
+                }
             }
         }
     }

@@ -27,13 +27,11 @@ export function getIPv4AddressesForListen(): string[] {
     const interfaces = os.networkInterfaces();
     Object.keys(interfaces).forEach(k => {
         interfaces[k]
-            .filter(a => {
-                return (
-                    a.family === "IPv4" &&
+            .filter(a => (
+                a.family === "IPv4" &&
                     a.internal === false &&
                     isPermittedIPAddress(a.address) === true
-                );
-            })
+            ))
             .forEach(a => addresses.push(a.address));
     });
 
@@ -47,13 +45,11 @@ export function getIPv6AddressesForListen(): string[] {
     const interfaces = os.networkInterfaces();
     Object.keys(interfaces).forEach(k => {
         interfaces[k]
-            .filter(a => {
-                return (
-                    a.family === "IPv6" &&
+            .filter(a => (
+                a.family === "IPv6" &&
                     a.internal === false &&
                     isPermittedIPAddress(a.address) === true
-                );
-            })
+            ))
             .forEach(a => addresses.push(a.address + "%" + k));
     });
 
