@@ -44,11 +44,11 @@ if [ -e "/opt/bin/startup" ]; then
   echo "done."
 fi
 
-# only for test purpose
-if !(type "arib-b25-stream-test" > /dev/null 2>&1); then
-  npm --prefix /opt install arib-b25-stream-test
-  ln -sv /opt/node_modules/arib-b25-stream-test/bin/b25 /opt/bin/arib-b25-stream-test
-fi
+# # only for test purpose
+# if !(type "arib-b25-stream-test" > /dev/null 2>&1); then
+#   npm --prefix /opt install arib-b25-stream-test
+#   ln -sv /opt/node_modules/arib-b25-stream-test/bin/b25 /opt/bin/arib-b25-stream-test
+# fi
 
 if [ -e "/etc/init.d/pcscd" ]; then
   while :; do

@@ -2,8 +2,8 @@ name: build
 
 on:
   push:
+    branches: [master, stuayu-main, dev]
   workflow_dispatch:
-    branches: [master, stuayu-main]
 
 jobs:
   build:
@@ -17,12 +17,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: Mirakurun
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -42,7 +42,7 @@ jobs:
           7z a -m0=LZMA2 -mx=9 -md=128m -mfb=128 -ms=16g -mmt=on -mf=BCJ Mirakurun-${{ matrix.os }}-${{ matrix.node-version }}.7z ./Mirakurun
 
       - name: Upload Project as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Mirakurun-${{ matrix.os }}-${{ matrix.node-version }}.7z
           path: Mirakurun-${{ matrix.os }}-${{ matrix.node-version }}.7z
