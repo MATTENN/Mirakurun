@@ -85,18 +85,20 @@ class Server {
         app.disable("x-powered-by");
         app.disable("etag");
 
-        const corsOptions: cors.CorsOptions = {
-            origin: (origin, callback) => {
-                if (!origin) {
-                    return callback(null, true);
+        if (!serverConfig.allowListenAllInterface) {
+            const corsOptions: cors.CorsOptions = {
+                origin: (origin, callback) => {
+                    if (!origin) {
+                        return callback(null, true);
+                    }
+                    if (system.isPermittedHost(origin, serverConfig.hostname)) {
+                        return callback(null, true);
+                    }
+                    return callback(new Error("Not allowed by CORS"));
                 }
-                if (system.isPermittedHost(origin, serverConfig.hostname)) {
-                    return callback(null, true);
-                }
-                return callback(new Error("Not allowed by CORS"));
-            }
-        };
-        app.use(cors(corsOptions));
+            };
+            app.use(cors(corsOptions));
+        }
 
         app.use(morgan(":remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] - :response-time ms :user-agent", {
             stream: log.event as any
@@ -106,7 +108,7 @@ class Server {
 
         app.use((req: express.Request, res: express.Response, next) => {
 
-            if (serverConfig.allowListenAllInterface) {
+            if (!serverConfig.allowListenAllInterface) {
                 if (req.ip && system.isPermittedIPAddress(req.ip) === false) {
                     req.socket.end();
                     return;
@@ -188,7 +190,7 @@ class Server {
             next();
         });
 
-        if (serverConfig.allowListenAllInterface) {
+        if (!serverConfig.allowListenAllInterface) {
             addresses.forEach(address => {
 
                 const server = http.createServer(app);

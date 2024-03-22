@@ -22,7 +22,7 @@ export interface Server {
     readonly disableWebUI?: true;
     readonly allowIPv4CidrRanges?: string[];
     readonly allowIPv6CidrRanges?: string[];
-    readonly allowListenAllInterface?: true;
+    readonly allowListenAllInterface?: boolean;
 }
 export interface Tuner {
     readonly name: string;

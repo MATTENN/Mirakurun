@@ -293,11 +293,11 @@ const Configurator: React.FC<{ uiState: UIState, uiStateEvents: EventEmitter }> 
                                 </TooltipHost>
                             </Stack>
                         }
-                        checked={(editing.allowListenAllInterface === undefined || editing.allowListenAllInterface === false)}
+                        checked={(editing.allowListenAllInterface === undefined || editing.allowListenAllInterface === true)}
                         onText="Enable"
                         offText="Disable"
                         onChange={(ev, checked) => {
-                            setEditing({ ...editing, allowListenAllInterface: checked === false ? true : undefined })
+                            setEditing({ ...editing, allowListenAllInterface: checked === false ? false : true })
                         }}
                     />
 

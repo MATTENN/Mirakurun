@@ -85,7 +85,7 @@ export interface Server {
     readonly disableWebUI?: true;
     readonly allowIPv4CidrRanges?: string[];
     readonly allowIPv6CidrRanges?: string[];
-    readonly allowListenAllInterface?: true;
+    readonly allowListenAllInterface?: boolean;
 }
 
 export interface Tuner {
@@ -179,6 +179,9 @@ export function loadServer(): Server {
     }
     if (!config.allowIPv6CidrRanges) {
         config.allowIPv6CidrRanges = ["fc00::/7", "::1/128"];
+    }
+    if (config.allowListenAllInterface === undefined) {
+        config.allowListenAllInterface = true;
     }
 
     // Docker

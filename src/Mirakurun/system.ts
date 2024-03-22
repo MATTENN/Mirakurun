@@ -25,15 +25,30 @@ export function getIPv4AddressesForListen(): string[] {
     const addresses = [];
 
     const interfaces = os.networkInterfaces();
-    Object.keys(interfaces).forEach(k => {
-        interfaces[k]
-            .filter(a => (
-                a.family === "IPv4" &&
-                    a.internal === false &&
-                    isPermittedIPAddress(a.address) === true
-            ))
-            .forEach(a => addresses.push(a.address));
-    });
+
+    if (!_.config.server.allowListenAllInterface) {
+        Object.keys(interfaces).forEach(k => {
+            interfaces[k]
+                .filter(a => {
+                    return (
+                        a.family === "IPv4" &&
+                        a.internal === false &&
+                        isPermittedIPAddress(a.address) === true
+                    );
+                })
+                .forEach(a => addresses.push(a.address));
+        });
+    } else {
+        Object.keys(interfaces).forEach(k => {
+            interfaces[k]
+                .filter(a => {
+                    return (
+                        a.family === "IPv4"
+                    );
+                })
+                .forEach(a => addresses.push(a.address));
+        });
+    }
 
     return addresses;
 }
@@ -43,15 +58,29 @@ export function getIPv6AddressesForListen(): string[] {
     const addresses = [];
 
     const interfaces = os.networkInterfaces();
-    Object.keys(interfaces).forEach(k => {
-        interfaces[k]
-            .filter(a => (
-                a.family === "IPv6" &&
-                    a.internal === false &&
-                    isPermittedIPAddress(a.address) === true
-            ))
-            .forEach(a => addresses.push(a.address + "%" + k));
-    });
+    if (!_.config.server.allowListenAllInterface) {
+        Object.keys(interfaces).forEach(k => {
+            interfaces[k]
+                .filter(a => {
+                    return (
+                        a.family === "IPv6" &&
+                        a.internal === false &&
+                        isPermittedIPAddress(a.address) === true
+                    );
+                })
+                .forEach(a => addresses.push(a.address + "%" + k));
+        });
+    } else {
+        Object.keys(interfaces).forEach(k => {
+            interfaces[k]
+                .filter(a => {
+                    return (
+                        a.family === "IPv6"
+                    );
+                })
+                .forEach(a => addresses.push(a.address + "%" + k));
+        });
+    }
 
     return addresses;
 }

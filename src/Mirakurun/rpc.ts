@@ -98,7 +98,7 @@ export function initRPCNotifier(rpcs: Set<RPCServer>): void {
 class NotifyManager<T> {
     private _items = new Set<T>();
     private _active = false;
-    constructor(private _room: string, private _method: string, private _rpcs: Set<RPCServer>) {}
+    constructor(private _room: string, private _method: string, private _rpcs: Set<RPCServer>) { }
     async notify(item: T) {
         this._items.add(item);
         if (this._active) {
@@ -123,7 +123,7 @@ class NotifyManager<T> {
 
 function serverOnUpgrade(this: RPCServer["wss"], req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
 
-    if (_.config.server.allowListenAllInterface) {
+    if (!_.config.server.allowListenAllInterface) {
         if (req.socket.remoteAddress && !isPermittedIPAddress(req.socket.remoteAddress)) {
             socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");
             socket.destroy();
