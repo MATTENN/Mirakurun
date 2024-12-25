@@ -24,20 +24,22 @@ DVR Tuner Server for Japanese TV which designed for the "Air" (in development co
 > NodeJS v18/v20 LTS版でビルド、実行を確認しています。<br>
 
 ### インストール方法
+
   1. ダウンロード<br>
     Githubからクローンする
       ```powershell
-      git clone https://github.com/stuayu/Mirakurun.git -b dev # devブランチをチェックアウトする
+      git clone https://github.com/MATTENN/Mirakurun.git -b dev # devブランチをチェックアウトする
       cd Mirakurun
       ```
   1. ビルド
       ```powershell
-      npm run install
+      npm install
       npm run build
       ```
   2. サービス登録<br>
-    管理者権限でターミナルを起動して以下のコマンドを実行
+    管理者権限でターミナルを起動して以下のコマンドを実行 (winserを入れていなかったらいれる)
       ```powershell
+      npm install -g winser
       npm run postinstall -g
       ```
   3. サービス起動の確認<br>
@@ -45,7 +47,13 @@ DVR Tuner Server for Japanese TV which designed for the "Air" (in development co
     2.のサービス登録で登録が失敗したら、コマンドプロンプト(管理者)で<br>`SC stop mirakurun`と`SC delete mirakurun`を実行したのち、2.を再実行してください。<br><br>
     Linuxの場合は`pm2 status mirakurun-server`で起動できているか確認してください。
 
-  4. 管理画面の確認<br>
+  （もしかすると下記コマンドでいけるかもしれない）
+
+  ```
+  winser.cmd -i -a --startuptype auto --startcmd "node.exe bin\\init.win32.js" --set "AppPriority ABOVE_NORMAL_PRIORITY_CLASS" --set "Type SERVICE_WIN32_OWN_PROCESS" --set "AppStdout C:\\Users\\<ユーザー名>\\Mirakurun\\local_data\\stdout" --set "AppStderr C:\\Users\\<ユーザー名>\\Mirakurun\\local_data\\stderr" --env "USERPROFILE=C:\\Users\\<ユーザー名>" --env "LOCALAPPDATA=C:\\Users\\<ユーザー名>\\AppData\\Local" --env "USING_WINSER=1" --name "mirakurun"
+  ```
+
+  5. 管理画面の確認<br>
     http://127.0.0.1:40772
 
 ### 利用方法の例
